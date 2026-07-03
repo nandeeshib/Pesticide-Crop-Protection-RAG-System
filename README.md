@@ -1,7 +1,6 @@
 <div align="center">
 
-# 🌾 AgriSafe-RAG
-**Pesticide & Crop Protection Retrieval-Augmented Generation (RAG) System**
+#  Pesticide & Crop Protection RAG System
 
 [![Python Version](https://img.shields.io/badge/python-3.8%2B-blue.svg)](https://www.python.org/downloads/)
 [![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://streamlit.io)
@@ -11,13 +10,29 @@
 
 </div>
 
-## 📖 Overview
+This project is a 12-hour-buildable MVP for the assigned problem statement:
 
-**AgriSafe-RAG** is a highly specialized, 12-hour-buildable MVP designed to address a critical agricultural challenge: providing fast, accurate, and safe guidance on approved pesticides, dosages, safety intervals, and precautions for specific crop-pest combinations. 
+> Farmers and extension workers need fast, accurate guidance on approved pesticides, dosages, safety intervals, and precautions for crop-pest combinations. The system must ingest registration documents, ICAR crop protection manuals, and WHO pesticide safety sheets, then answer queries with citations and toxicity risk flags.
 
-Instead of generating unverified answers, this system employs a conservative RAG architecture that strictly grounds every recommendation in trusted agricultural guidelines, including ICAR crop protection manuals, CIB&RC registered pesticide lists, and WHO safety sheets.
+## Problem Discussion
+Pesticide recommendations depend on crop, pest, active ingredient, formulation, dose unit, pre-harvest interval, registration status, and local label restrictions. A normal chatbot can easily merge information across crops or invent dosage values. This system therefore uses a conservative RAG design:
 
-## 🎯 Key Features
+1. Every answer must be grounded in retrieved source chunks.
+2. Each chunk carries metadata: source type, crop, pest, title, page, publisher, year, and URL.
+3. The final answer shows pesticide name, dose, safety interval, source citation, and a toxicity flag.
+4. If evidence is weak or missing, the app says so instead of guessing.
+
+Used prioritize 8 documents:
+
+- 4 ICAR crop protection manuals or crop-specific pest management PDFs.
+- 1 CIB&RC registered pesticide list.
+- 1 WHO pesticide hazard classification PDF.
+- 1 PAN/Open pesticide toxicity dataset export.
+- 1 additional extension manual for vegetables/rice/wheat/cotton.
+
+Choosen crops for evaluation: rice, cotton, wheat, tomato, chilli, brinjal, cabbage, okra.
+
+## Key Features
 
 - **Strict Evidence Grounding**: Every answer is directly sourced from retrieved documents. No hallucinated dosages or chemical recommendations.
 - **Detailed Citations**: Responses include source type, crop, pest, publisher, year, and URL.
@@ -26,7 +41,7 @@ Instead of generating unverified answers, this system employs a conservative RAG
 - **Cross-Encoder Reranking**: Ensures the most relevant chunks are prioritized before answer synthesis.
 - **Multilingual Support**: Supports translation into Kannada using IndicTrans2 models for localized extension worker support.
 
-## 🏗️ Architecture
+##  Architecture
 
 ```mermaid
 flowchart LR
@@ -45,10 +60,21 @@ flowchart LR
     K --> M["Streamlit UI w/ Citations"]
 ```
 
-## 📂 Project Structure
+### Retrieval Accuracy Choices
+
+- **Hybrid retrieval:** FAISS captures semantic matches; BM25 catches exact pesticide, pest, and dose terms.
+- **Metadata filters:** crop/pest/source filters prevent irrelevant chunks from dominating.
+- **Reranking:** a cross-encoder reranks the top hybrid results before answer synthesis.
+- **Evidence-only answer:** the system extracts recommendation lines from retrieved chunks rather than free-generating unsupported dosage.
+- **Chunk size:** 900 characters with 150 character overlap keeps dosage tables and surrounding labels together.
+- **Source priority:** ICAR and CIB&RC evidence should outrank generic web/manual content for recommendations.
+
+
+
+##  Project Structure
 
 ```text
-AgriSafe-RAG/
+Pesticides-RAG/
 ├── data/
 │   ├── raw/                  # Source PDFs, CSVs, TXT files
 │   ├── processed/            # Generated data chunks
@@ -68,7 +94,7 @@ AgriSafe-RAG/
 └── requirements-indictrans.txt # Translation dependencies
 ```
 
-## 🚀 Getting Started
+## Getting Started
 
 ### 1. Environment Setup
 
@@ -102,6 +128,27 @@ python -m src.pesticide_rag.build_index
 ```
 *(Note: If FAISS is not yet installed, the app can run in a simple keyword mode directly from chunks).*
 
+
+The current scaffold also includes `data/raw/structured_crop_pesticide_recommendations.csv`.
+Those rows are ingested as clean chunks like:
+
+```text
+Crop:
+Rice
+
+Pest:
+Brown plant hopper
+
+Recommended pesticide:
+Imidacloprid 17.8% SL
+
+Dose:
+40-51 ml/acre, converted from 100-125 ml/ha
+
+Waiting period:
+40 days
+```
+
 ### 4. Run the Application
 
 Launch the interactive UI:
@@ -119,6 +166,6 @@ python -m src.pesticide_rag.evaluate
 
 ---
 
-## ⚠️ Safety Disclaimer
+##  Safety Disclaimer
 
 > **IMPORTANT**: This system is a prototype designed for decision-support and research purposes. Real-world pesticide application must **always** follow the official product label, local registration status, state agricultural department guidance, and the judgment of trained extension workers. The developers assume no liability for agricultural or health outcomes resulting from the use of this software.
