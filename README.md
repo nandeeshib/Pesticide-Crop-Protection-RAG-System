@@ -162,8 +162,22 @@ Evaluate the system's accuracy using the provided query template:
 ```bash
 python -m src.pesticide_rag.evaluate
 ```
-*Evaluations use BERTScore (`distilbert-base-uncased`) to measure F1 scores against reference answers.*
 
+The evaluator writes:
+
+```text
+data/eval/eval_results.csv
+data/eval/eval_summary.md
+```
+
+The current MVP includes 15 filled reference answers and runs BERTScore with
+`distilbert-base-uncased`. Latest local run:
+
+```text
+Query pairs evaluated: 15
+Mean BERTScore F1: 0.7823
+Toxicity-flagged answers: 3
+```
 ---
 
 ##  Safety Disclaimer
