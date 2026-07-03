@@ -1,0 +1,5 @@
+transformers>=4.40
+sentencepiece>=0.2
+protobuf>=4.25
+git+https://github.com/VarunGumma/IndicTransToolkit.git
+
